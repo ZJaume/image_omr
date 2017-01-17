@@ -29,11 +29,11 @@ def create_dictionary():
     print("---> Succesfully imported to JSON format")
 
 #
-# Translate the labels to a categorical format using the dictionary
+# Translate the labels to a coded format using the dictionary
 #
-def encode():
+def codify():
     words = None
-    print("Encoding labels...")
+    print("Codifying labels...")
     with open(dict_path,'r') as fp:
         words = json.load(fp)
 
@@ -45,10 +45,10 @@ def encode():
                 aux = aux + str(words[token]) + " "
             aux = aux + '\n'
 
-        f = open(path + "labels_cat.txt", 'w')
+        f = open(path + "labels_cod.txt", 'w')
         f.write(aux)
-    print("---> Succesfully encoded labels")
+    print("---> Succesfully codified labels")
 
 
 create_dictionary()
-encode()
+codify()
