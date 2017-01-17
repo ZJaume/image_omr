@@ -26,11 +26,29 @@ def create_dictionary():
     with open(dict_path,'w') as fp:
         json.dump(words, fp, sort_keys=True, indent=4)
 
-def translate():
+    print("---> Succesfully imported to JSON format")
+
+#
+# Translate the labels to a categorical format using the dictionary
+#
+def encode():
     words = None
+    print("Encoding labels...")
     with open(dict_path,'r') as fp:
-        words = json.load(fp )
-    print(words)
+        words = json.load(fp)
+
+    for path in paths:
+        f = open(path + "labels.txt")
+        aux = ""
+        for line in f:
+            for token in line.split():
+                aux = aux + str(words[token]) + " "
+            aux = aux + '\n'
+
+        f = open(path + "labels_cat.txt", 'w')
+        f.write(aux)
+    print("---> Succesfully encoded labels")
+
 
 create_dictionary()
-translate()
+encode()
