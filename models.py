@@ -19,7 +19,7 @@ def ctc_lambda_func(args):
 #
 # Create RNN with convolutional filters and CTC logloss function
 #
-def create_rnn(input_shape, lb_max_length, nb_classes):
+def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     if K.image_dim_ordering() =='th':
         img_w = input_shape[1]
         img_h = input_shape[2]
@@ -30,7 +30,6 @@ def create_rnn(input_shape, lb_max_length, nb_classes):
     # Network parameters
     conv_num_filters = 16
     filter_size = 3
-    pool_size = 2
     time_dense_size = 32
     rnn_size = 512
     output_size = 28
