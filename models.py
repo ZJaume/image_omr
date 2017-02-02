@@ -1,10 +1,10 @@
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
-from keras.layers import Reshape, Lambda
+from keras.layers import Reshape, Lambda, merge
 from keras.models import Sequential, Model
 from keras.layers.recurrent import GRU
 from keras.layers.wrappers import Bidirectional
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Nadam
 from keras import backend as K
 
 # the actual loss calc occurs here despite it not being
@@ -51,12 +51,15 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    inner = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru1'))(inner)
-    inner = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru2'))(inner)
+    gru_1 = GRU(rnn_size, return_sequences=True, init='he_normal', name='gru1')(inner)
+    gru_1b = GRU(rnn_size, return_sequences=True, go_backwards=True, init='he_normal', name='gru1_b')(inner)
+    gru1_merged = merge([gru_1, gru_1b], mode='sum')
+    gru_2 = GRU(rnn_size, return_sequences=True, init='he_normal', name='gru2')(gru1_merged)
+    gru_2b = GRU(rnn_size, return_sequences=True, go_backwards=True, init='he_normal', name='gru2_b')(gru1_merged)
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',
-                  name='dense2')(inner)
+                  name='dense2')(merge([gru_2, gru_2b], mode='concat'))
     y_pred = Activation('softmax', name='softmax')(inner)
     Model(input=[input_data], output=y_pred).summary()
 
