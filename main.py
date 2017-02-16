@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import models
 
-from keras.models import Model
+from keras.models import Model, save_model, load_model
 import keras.backend as K
 
 nb_classes = 216
@@ -16,7 +16,7 @@ pool_size = 2
 lb_max_length = 15
 
 # Size of the images
-img_w, img_h= 180, 80
+img_w, img_h= 120, 60
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -58,7 +58,7 @@ X, Y, input_shape = load_data(pool_size)
 
 print(str(Y['ctc'].shape[0]) + " trainning examples")
 print(str(nb_epoch) + " epochs")
-print(str(X['the_labels'].shape))
 
 model = models.create_rnn(input_shape, lb_max_length, nb_classes)
 model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch, validation_split=0.2)
+save_model(model, "lilypond_rnn.h5")
