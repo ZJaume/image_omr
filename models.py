@@ -76,5 +76,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     model = Model(input=[input_data, labels, input_length, label_length], output=[loss_out])
     model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
 
-    return model
+    test_func = K.function([input_data],[y_pred])
+
+    return model, test_func
 

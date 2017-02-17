@@ -7,7 +7,7 @@ from keras.models import Model, save_model, load_model
 import keras.backend as K
 
 nb_classes = 216
-nb_epoch = 30
+nb_epoch = 5
 batch_size = 128
 
 pool_size = 2
@@ -59,6 +59,12 @@ X, Y, input_shape = load_data(pool_size)
 print(str(Y['ctc'].shape[0]) + " trainning examples")
 print(str(nb_epoch) + " epochs")
 
-model = models.create_rnn(input_shape, lb_max_length, nb_classes)
-model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch, validation_split=0.2)
-save_model(model, "lilypond_rnn.h5")
+model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes)
+#model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch, validation_split=0.2)
+model.load_weights("lilypond_rnn-w.h5")
+
+out = test_func([X['the_input'][1:2]])[0]
+print(X['the_labels'][1:2])
+print(out.shape)
+for f in range(out[0].shape[0]):
+    print("Frame :"+str(f)+" "+ str(np.argmax(out[0][f])))
