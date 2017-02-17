@@ -6,6 +6,9 @@ from keras.layers.recurrent import GRU
 from keras.layers.wrappers import Bidirectional
 from keras.optimizers import SGD, Nadam
 from keras import backend as K
+import keras.callbacks
+
+import numpy as np
 
 # the actual loss calc occurs here despite it not being
 # an internal Keras loss function
@@ -80,3 +83,37 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     return model, test_func
 
+class AccCallback(keras.callbacks.Callback):
+
+    def __init__(self,test_func, inputs, labels):
+        self.test_func = test_func
+        self.inputs = inputs
+        self.labels = labels
+
+    def on_epoch_end(self, epoch, logs={}):
+        func_out = self.test_func([self.inputs])[0]
+        output = []
+        for f in func_out[0]:
+            output.append(np.argmax(f))
+        distance = self.levenshtein(self.labels[0].tolist(),output)
+        print("Edit distance for epoch " +str(epoch) + ": "  + str(distance))
+
+    def levenshtein(self,a,b):
+        "Calculates the Levenshtein distance between a and b."
+        n, m = len(a), len(b)
+        if n > m:
+        # Make sure n <= m, to use O(min(n,m)) space
+            a,b = b,a
+            n,m = m,n
+
+        current = range(n+1)
+        for i in range(1,m+1):
+            previous, current = current, [i]+[0]*n
+            for j in range(1,n+1):
+                add, delete = previous[j]+1, current[j-1]+1
+                change = previous[j-1]
+                if a[j-1] != b[i-1]:
+                    change = change + 1
+                current[j] = min(add, delete, change)
+
+        return current[n]

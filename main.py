@@ -60,11 +60,13 @@ print(str(Y['ctc'].shape[0]) + " trainning examples")
 print(str(nb_epoch) + " epochs")
 
 model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes)
-#model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch, validation_split=0.2)
-model.load_weights("lilypond_rnn-w.h5")
+acc_callback = models.AccCallback(test_func, X['the_input'], X['the_labels'])
 
-out = test_func([X['the_input'][1:2]])[0]
-print(X['the_labels'][1:2])
-print(out.shape)
-for f in range(out[0].shape[0]):
-    print("Frame :"+str(f)+" "+ str(np.argmax(out[0][f])))
+model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
+        callbacks=[acc_callback], validation_split=0.2)
+#model.load_weights("lilypond_rnn-w.h5")
+#out = test_func([X['the_input'][1:2]])[0]
+#print(X['the_labels'][1:2])
+#print(out.shape)
+#for f in range(out[0].shape[0]):
+#    print("Frame :"+str(f)+" "+ str(np.argmax(out[0][f])))
