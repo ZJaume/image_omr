@@ -25,17 +25,21 @@ def load_data(downsample_factor):
     image_list = []
     class_list = []
     label_length = []
+    num_examples = batch_size*5
 
     for directory in {'TestSet', 'TrainSet'}:
         path = './data/lilypond/{}/'.format(directory)
         labels = open(path + 'labels_cod.txt')
         for filename in glob.glob(path + '*.png'):
+            if num_examples == 0:
+                break
             im=Image.open(filename).resize((img_w,img_h)).convert('L')
             im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
             label = np.fromstring(labels.readline(), dtype=int, sep=' ')
             label_length.append(len(label))
             class_list.append(label)
             image_list.append(np.asarray(im).astype('float32')/255)
+            num_examples-=1
 
     n = len(image_list)     # Total examples
     if K.image_dim_ordering() == 'th':
