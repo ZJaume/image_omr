@@ -44,26 +44,41 @@ def load_data(downsample_factor):
     else:
         input_shape = (img_w, img_h, 1)
         X = np.asarray(image_list).reshape(n, img_w, img_h, 1)
+    class_list = np.asarray(class_list)
+    label_length = np.asarray(label_length)
 
-    inputs = { 'the_input' : X,
-                'the_labels' : np.asarray(class_list),
-                'input_length' : np.full((n,), img_w // downsample_factor ** 2 - 2),
-                'label_length' : np.asarray(label_length),
-            }
-    outputs = {'ctc' : np.zeros((n,), dtype=int)}
+    # Divide in train and test data
+    randomize = np.arange(n)
+    np.random.shuffle(randomize)
+    X, class_list, label_length = X[randomize], class_list[randomize], label_length[randomize]
+    n_partition = int(n*0.9)    # 10% validation
 
-    return inputs, outputs, input_shape
+    inputs_train = { 'the_input' : X[:n_partition],
+                'the_labels' : class_list[:n_partition],
+                'input_length' : np.full((n_partition,), img_w // downsample_factor ** 2 - 2),
+                'label_length' : label_length[:n_partition],
+                }
+    inputs_test = { 'the_input' : X[n_partition:],
+                'the_labels' : class_list[n_partition:],
+                'input_length' : np.full((n-n_partition,), img_w // downsample_factor ** 2 - 2),
+                'label_length' : label_length[n_partition:],
+                }
+    outputs_train = {'ctc' : np.zeros((n_partition,), dtype=int)}
+    outputs_test = {'ctc' : np.zeros((n-n_partition,), dtype=int)}
 
-X, Y, input_shape = load_data(pool_size)
+    return inputs_train, inputs_test, outputs_train, outputs_test, input_shape
 
-print(str(Y['ctc'].shape[0]) + " trainning examples")
+X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size)
+
+print(str(len(X_train['the_input'])) + " trainning examples")
+print(str(len(X_test['the_input'])) + " test examples")
 print(str(nb_epoch) + " epochs")
 
 model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes)
-acc_callback = models.AccCallback(test_func, X['the_input'], X['the_labels'])
+acc_callback = models.AccCallback(test_func, X_test['the_input'], X_test['the_labels'])
 
-model.fit(X, Y['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
-        callbacks=[acc_callback], validation_split=0.2)
+model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
+        callbacks=[acc_callback], validation_data=(X_test,Y_test['ctc']))
 #model.load_weights("lilypond_rnn-w.h5")
 #out = test_func([X['the_input'][1:2]])[0]
 #print(X['the_labels'][1:2])
