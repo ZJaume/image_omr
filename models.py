@@ -97,7 +97,7 @@ class AccCallback(keras.callbacks.Callback):
             output = []
             for y in y_pred:
                 output.append(np.argmax(y))
-            ed = self.levenshtein(self.labels[y].tolist(),output))
+            ed = self.levenshtein(self.labels[y].tolist(),output)
             mean_ed += float(ed)
             mean_norm_ed += float(ed) / self.inputs['label_length'][y]
 
