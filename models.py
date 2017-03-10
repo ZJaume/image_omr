@@ -92,11 +92,18 @@ class AccCallback(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         func_out = self.test_func([self.inputs])[0]
-        output = []
-        for f in func_out[0]:
-            output.append(np.argmax(f))
-        distance = self.levenshtein(self.labels[0].tolist(),output)
-        print("Edit distance for epoch " +str(epoch) + ": "  + str(distance))
+        ed = 0
+        for y, y_pred in range(func_out):
+            output = []
+            for y in y_pred:
+                output.append(np.argmax(y))
+            ed = self.levenshtein(self.labels[y].tolist(),output)
+            mean_ed += float(ed)
+            mean_norm_ed += float(ed) / self.inputs['label_length'][y]
+
+        mean_ed = mean_ed / len(func_out)
+        mean_norm_ed = mean_norm_ed / len(func_out)
+        print("Mean edit distance: %0.3f, mean normalized edit distance: %0.3f" % (mean_ed, mean_norm_ed))
 
     def levenshtein(self,a,b):
         "Calculates the Levenshtein distance between a and b."
