@@ -54,15 +54,12 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    gru_1 = GRU(rnn_size, return_sequences=True, init='he_normal', name='gru1')(inner)
-    gru_1b = GRU(rnn_size, return_sequences=True, go_backwards=True, init='he_normal', name='gru1_b')(inner)
-    gru1_merged = merge([gru_1, gru_1b], mode='sum')
-    gru_2 = GRU(rnn_size, return_sequences=True, init='he_normal', name='gru2')(gru1_merged)
-    gru_2b = GRU(rnn_size, return_sequences=True, go_backwards=True, init='he_normal', name='gru2_b')(gru1_merged)
+    gru_1 = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru1'))(inner)
+    gru_2 = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru2'))(gru_1)
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',
-                  name='dense2')(merge([gru_2, gru_2b], mode='concat'))
+                  name='dense2')(gru_2)
     y_pred = Activation('softmax', name='softmax')(inner)
     Model(input=[input_data], output=y_pred).summary()
 
