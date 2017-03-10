@@ -94,8 +94,14 @@ class AccCallback(keras.callbacks.Callback):
         for i in range(func_out.shape[0]):
             output = []
             for j in range(func_out.shape[1]):
-                output.append(np.argmax(func_out[i][j]))
-            #print(output)
+                out = np.argmax(func_out[i][j])
+                if len(output) != 0:
+                    if output[len(output)-1] != out:
+                        output.append(out)
+                else:
+                    output.append(out)
+            print(output)
+            print(self.inputs['the_labels'][i])
             ed = self.levenshtein(self.inputs['the_labels'][i].tolist(),output)
             mean_ed += float(ed)
             mean_norm_ed += float(ed) / self.inputs['label_length'][i]
