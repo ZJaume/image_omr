@@ -4,7 +4,7 @@ from keras.layers import Reshape, Lambda, merge
 from keras.models import Sequential, Model
 from keras.layers.recurrent import GRU
 from keras.layers.wrappers import Bidirectional
-from keras.optimizers import SGD, Nadam
+from keras.optimizers import SGD, RMSprop, Nadam
 from keras import backend as K
 import keras.callbacks
 
@@ -34,7 +34,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     conv_num_filters = 16
     filter_size = 3
     time_dense_size = 32
-    rnn_size = 512
+    rnn_size = 128
     output_size = 28
     act = 'relu'
 
@@ -71,10 +71,10 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     loss_out = Lambda(ctc_lambda_func, output_shape=(1,), name='ctc')([y_pred, labels, input_length, label_length])
 
     # clipnorm seems to speeds up convergence
-    sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+    sgd = SGD(lr=0.002, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
 
     model = Model(input=[input_data, labels, input_length, label_length], output=[loss_out])
-    model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+    model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer='rmsprop')
 
     test_func = K.function([input_data],[y_pred])
 
@@ -93,15 +93,15 @@ class AccCallback(keras.callbacks.Callback):
         mean_norm_ed = 0.0
         for i in range(func_out.shape[0]):
             output = []
+            prev = -1
             for j in range(func_out.shape[1]):
                 out = np.argmax(func_out[i][j])
-                if len(output) != 0:
-                    if output[len(output)-1] != out:
-                        output.append(out)
-                else:
+                print(func_out[i][j])
+                if out != prev and out != -1:
                     output.append(out)
+                prev = out
             print(output)
-            print(self.inputs['the_labels'][i])
+            print(str(self.inputs['the_labels'][i])+str(self.inputs['label_length'][i]))
             ed = self.levenshtein(self.inputs['the_labels'][i].tolist(),output)
             mean_ed += float(ed)
             mean_norm_ed += float(ed) / self.inputs['label_length'][i]

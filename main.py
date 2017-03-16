@@ -6,7 +6,7 @@ import models
 from keras.models import Model, save_model, load_model
 import keras.backend as K
 
-nb_classes = 216
+nb_classes = 215
 nb_epoch = 5
 batch_size = 128
 
@@ -16,7 +16,7 @@ pool_size = 2
 lb_max_length = 15
 
 # Size of the images
-img_w, img_h= 60, 30
+img_w, img_h= 120, 60
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -25,7 +25,7 @@ def load_data(downsample_factor):
     image_list = []
     class_list = []
     label_length = []
-    num_examples = batch_size*5
+    num_examples = batch_size*64
 
     for directory in {'TestSet', 'TrainSet'}:
         path = './data/lilypond/{}/'.format(directory)
@@ -37,7 +37,7 @@ def load_data(downsample_factor):
             im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
             label = np.fromstring(labels.readline(), dtype=int, sep=' ')
             label_length.append(len(label))
-            fill = np.full((lb_max_length - len(label),), nb_classes-1, dtype=int)
+            fill = np.full((lb_max_length - len(label),), -1, dtype=int)
             class_list.append(np.append(label,fill))
             image_list.append(np.asarray(im).astype('float32')/255)
             num_examples-=1
