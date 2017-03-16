@@ -49,12 +49,8 @@ def codify(max_length, dict_length):
         aux = ""
         for line in f:
             tokens = line.split()
-            for i in range(max_length):
-                if i < len(tokens):
-                    aux = aux + str(words[tokens[i]]) + ' '
-                else:
-                    aux = aux + str(dict_length) + ' '
-
+            for i in range(len(tokens)):
+                aux = aux + str(words[tokens[i]]) + ' '
             aux = aux + '\n'
 
         f = open(path + "labels_cod.txt", 'w')

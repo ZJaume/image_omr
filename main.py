@@ -16,7 +16,7 @@ pool_size = 2
 lb_max_length = 15
 
 # Size of the images
-img_w, img_h= 120, 60
+img_w, img_h= 60, 30
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -37,7 +37,8 @@ def load_data(downsample_factor):
             im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
             label = np.fromstring(labels.readline(), dtype=int, sep=' ')
             label_length.append(len(label))
-            class_list.append(label)
+            fill = np.full((lb_max_length - len(label),), nb_classes-1, dtype=int)
+            class_list.append(np.append(label,fill))
             image_list.append(np.asarray(im).astype('float32')/255)
             num_examples-=1
 
