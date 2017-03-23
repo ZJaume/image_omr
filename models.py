@@ -96,7 +96,7 @@ class AccCallback(keras.callbacks.Callback):
             prev = -1
             for j in range(func_out.shape[1]):
                 out = np.argmax(func_out[i][j])
-                print(func_out[i][j])
+                #print(func_out[i][j])
                 if out != prev and out != -1:
                     output.append(out)
                 prev = out

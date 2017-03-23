@@ -2,6 +2,7 @@ from PIL import Image, ImageOps
 import numpy as np
 import glob
 import models
+import os
 
 from keras.models import Model, save_model, load_model
 import keras.backend as K
@@ -16,7 +17,7 @@ pool_size = 2
 lb_max_length = 15
 
 # Size of the images
-img_w, img_h= 120, 60
+img_w, img_h= 90, 45
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -27,12 +28,13 @@ def load_data(downsample_factor):
     label_length = []
     num_examples = batch_size*64
 
-    for directory in {'TestSet', 'TrainSet'}:
+    for directory in ['TrainSet', 'TestSet']:
         path = './data/lilypond/{}/'.format(directory)
+        num_paths = len(glob.glob(path + '*.png'))
+        paths = sort_paths(num_paths, len(image_list), path, '.png')
         labels = open(path + 'labels_cod.txt')
-        for filename in glob.glob(path + '*.png'):
-            if num_examples == 0:
-                break
+
+        for filename in paths:
             im=Image.open(filename).resize((img_w,img_h)).convert('L')
             im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
             label = np.fromstring(labels.readline(), dtype=int, sep=' ')
@@ -40,7 +42,8 @@ def load_data(downsample_factor):
             fill = np.full((lb_max_length - len(label),), -1, dtype=int)
             class_list.append(np.append(label,fill))
             image_list.append(np.asarray(im).astype('float32')/255)
-            num_examples-=1
+            #print(filename, label)
+            #num_examples-=1
 
     n = len(image_list)     # Total examples
     if K.image_dim_ordering() == 'th':
@@ -51,6 +54,12 @@ def load_data(downsample_factor):
         X = np.asarray(image_list).reshape(n, img_w, img_h, 1)
     class_list = np.asarray(class_list)
     label_length = np.asarray(label_length)
+
+    # Using less examples
+    X = X[num_examples:]
+    class_list = class_list[num_examples:]
+    label_length = label_length[num_examples:]
+    n = num_examples
 
     # Divide in train and test data
     randomize = np.arange(n)
@@ -72,6 +81,12 @@ def load_data(downsample_factor):
     outputs_test = {'ctc' : np.zeros((n-n_partition,), dtype=int)}
 
     return inputs_train, inputs_test, outputs_train, outputs_test, input_shape
+
+def sort_paths(num_paths, offset, prefix, suffix):
+    sorted_paths = []
+    for i in range(1+offset, num_paths+offset+1):
+        sorted_paths.append(prefix + str(i) + suffix)
+    return sorted_paths
 
 X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size)
 
