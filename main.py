@@ -8,7 +8,7 @@ from keras.models import Model, save_model, load_model
 import keras.backend as K
 
 nb_classes = 215
-nb_epoch = 5
+nb_epoch = 50
 batch_size = 128
 
 pool_size = 2
@@ -26,7 +26,7 @@ def load_data(downsample_factor):
     image_list = []
     class_list = []
     label_length = []
-    num_examples = batch_size*64
+    num_examples = batch_size*90
 
     for directory in ['TrainSet', 'TestSet']:
         path = './data/lilypond/{}/'.format(directory)
@@ -42,24 +42,23 @@ def load_data(downsample_factor):
             fill = np.full((lb_max_length - len(label),), -1, dtype=int)
             class_list.append(np.append(label,fill))
             image_list.append(np.asarray(im).astype('float32')/255)
-            #print(filename, label)
             #num_examples-=1
 
     n = len(image_list)     # Total examples
     if K.image_dim_ordering() == 'th':
-        input_shape = (1, img_w, img_h)
-        X = np.asarray(image_list).reshape(n, 1, img_w, img_h)
+        input_shape = (1, img_h, img_w)
+        X = np.asarray(image_list).reshape(n, 1, img_h, img_w)
     else:
-        input_shape = (img_w, img_h, 1)
-        X = np.asarray(image_list).reshape(n, img_w, img_h, 1)
+        input_shape = (img_h, img_w, 1)
+        X = np.asarray(image_list).reshape(n, img_h, img_w, 1)
     class_list = np.asarray(class_list)
     label_length = np.asarray(label_length)
 
     # Using less examples
-    X = X[num_examples:]
-    class_list = class_list[num_examples:]
-    label_length = label_length[num_examples:]
-    n = num_examples
+    # X = X[num_examples:]
+    # class_list = class_list[num_examples:]
+    # label_length = label_length[num_examples:]
+    # n = num_examples
 
     # Divide in train and test data
     randomize = np.arange(n)
