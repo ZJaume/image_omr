@@ -17,7 +17,7 @@ pool_size = 2
 lb_max_length = 15
 
 # Size of the images
-img_w, img_h= 90, 45
+img_w, img_h= 120, 45
 
 #
 # Load data function, recieves downsample factor equal to pool size

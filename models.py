@@ -1,6 +1,6 @@
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
-from keras.layers import Reshape, Lambda, merge
+from keras.layers import Reshape, Lambda, merge, Permute
 from keras.models import Sequential, Model
 from keras.layers.recurrent import GRU
 from keras.layers.wrappers import Bidirectional
@@ -24,11 +24,11 @@ def ctc_lambda_func(args):
 #
 def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     if K.image_dim_ordering() =='th':
-        img_w = input_shape[1]
-        img_h = input_shape[2]
-    else:
-        img_w = input_shape[0]
         img_h = input_shape[1]
+        img_w = input_shape[2]
+    else:
+        img_h = input_shape[0]
+        img_w = input_shape[1]
 
     # Network parameters
     conv_num_filters = 16
@@ -47,10 +47,11 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     inner = MaxPooling2D(pool_size=(pool_size, pool_size), name='max2')(inner)
 
     conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 2)) * conv_num_filters)
+    inner = Permute((3,1,2))(inner)
     inner = Reshape(target_shape=conv_to_rnn_dims, name='reshape')(inner)
 
     # cuts down input size going into RNN:
-    inner = Dense(time_dense_size, activation=act, name='dense1')(inner)
+    #inner = Dense(time_dense_size, activation=act, name='dense1')(inner)
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
@@ -102,7 +103,7 @@ class AccCallback(keras.callbacks.Callback):
             prev = -1
             for j in range(func_out.shape[1]):
                 out = np.argmax(func_out[i][j])
-                rnnn_out.append(out)
+                rnn_out.append(out)
 
                 if out != prev and out != self.blank:
                     output.append(out)
@@ -121,7 +122,7 @@ class AccCallback(keras.callbacks.Callback):
 
         mean_ed = mean_ed / len(func_out)
         mean_norm_ed = mean_norm_ed / len(func_out)
-        print("Mean edit distance: %0.3f, mean normalized edit distance: %0.3f" % (mean_ed, mean_norm_ed))
+        print("\n --Mean edit distance: %0.3f, mean normalized edit distance: %0.3f" % (mean_ed, mean_norm_ed))
 
     def levenshtein(self,raw_a,raw_b):
         # Remove -1 from the lists
