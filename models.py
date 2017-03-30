@@ -82,21 +82,27 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs, blank_label):
+    def __init__(self,test_func, inputs, blank_label, logs=False):
         self.test_func = test_func
         self.inputs = inputs
-        self.blank = blank
+        self.blank = blank_label
+        self.log_level = logs
 
     def on_epoch_end(self, epoch, logs={}):
+        if self.log_level == True:
+            log_file = file('log_'+str(epoch)+'.log','w')
+
         func_out = self.test_func([self.inputs['the_input']])[0]
         ed = 0
         mean_ed = 0.0
         mean_norm_ed = 0.0
         for i in range(func_out.shape[0]):
+            rnn_out = []
             output = []
             prev = -1
             for j in range(func_out.shape[1]):
                 out = np.argmax(func_out[i][j])
+                rnnn_out.append(out)
 
                 if out != prev and out != self.blank:
                     output.append(out)
@@ -106,11 +112,22 @@ class AccCallback(keras.callbacks.Callback):
             mean_ed += float(ed)
             mean_norm_ed += float(ed) / self.inputs['label_length'][i]
 
+            if self.log_level == True:
+                log_file.write('Test: \t' + str(self.inputs['the_labels'][i].tolist()) + ' \n')
+                log_file.write('RNN output: \t' + str(rnn_out) + ' \n')
+                log_file.write('Hypothesis:\t' + str(output) + ' \n')
+                log_file.write('\tED: ' + str(ed) + ' | MED: ' + str(float(ed) / self.inputs['label_length'][i]) + '\n')
+                log_file.write('\n')
+
         mean_ed = mean_ed / len(func_out)
         mean_norm_ed = mean_norm_ed / len(func_out)
         print("Mean edit distance: %0.3f, mean normalized edit distance: %0.3f" % (mean_ed, mean_norm_ed))
 
-    def levenshtein(self,a,b):
+    def levenshtein(self,raw_a,raw_b):
+        # Remove -1 from the lists
+        a = [s for s in raw_a if s != -1]
+        b = [s for s in raw_b if s != -1]
+
         "Calculates the Levenshtein distance between a and b."
         n, m = len(a), len(b)
         if n > m:
