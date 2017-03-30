@@ -93,8 +93,9 @@ print(str(len(X_train['the_input'])) + " trainning examples")
 print(str(len(X_test['the_input'])) + " test examples")
 print(str(nb_epoch) + " epochs")
 
-model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes)
-acc_callback = models.AccCallback(test_func, X_test)
+# nb_classes+1 for the ctc blank class
+model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
+acc_callback = models.AccCallback(test_func, X_test, nb_classes)
 
 model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
         callbacks=[acc_callback], validation_data=(X_test,Y_test['ctc']))

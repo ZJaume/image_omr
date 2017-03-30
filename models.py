@@ -82,9 +82,10 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs):
+    def __init__(self,test_func, inputs, blank_label):
         self.test_func = test_func
         self.inputs = inputs
+        self.blank = blank
 
     def on_epoch_end(self, epoch, logs={}):
         func_out = self.test_func([self.inputs['the_input']])[0]
@@ -96,12 +97,11 @@ class AccCallback(keras.callbacks.Callback):
             prev = -1
             for j in range(func_out.shape[1]):
                 out = np.argmax(func_out[i][j])
-                #print(func_out[i][j])
-                if out != prev and out != -1:
+
+                if out != prev and out != self.blank:
                     output.append(out)
                 prev = out
-            print(output)
-            print(str(self.inputs['the_labels'][i])+str(self.inputs['label_length'][i]))
+
             ed = self.levenshtein(self.inputs['the_labels'][i].tolist(),output)
             mean_ed += float(ed)
             mean_norm_ed += float(ed) / self.inputs['label_length'][i]
