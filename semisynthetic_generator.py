@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageOps
 from matplotlib import pyplot as plt
 import numpy as np
 import glob
+import random
 
 black = 0
 white = 255
@@ -33,7 +34,9 @@ def gen_stave(width, heigth):
 def put_symbols(stave, symbols, offset=0):
     box = [0,int(homus_size*0.1) + border]
     for img in imgs:
-        stave.paste(img, box=tuple(box), mask=ImageOps.invert(img))
+        stave.paste(img,
+                box=(box[0], box[1] + random.randint(-border*1,border*1)),
+                mask=ImageOps.invert(img))
         box[0] += homus_size
 
 
