@@ -41,7 +41,7 @@ def load_data(downsample_factor):
             label_length.append(len(label))
             fill = np.full((lb_max_length - len(label),), -1, dtype=int)
             class_list.append(np.append(label,fill))
-            image_list.append(np.asarray(im).astype('float32')/255)
+            image_list.append(np.asarray(im).astype('float32'))#/255)
             #num_examples-=1
 
     n = len(image_list)     # Total examples
@@ -53,6 +53,11 @@ def load_data(downsample_factor):
         X = np.asarray(image_list).reshape(n, img_h, img_w, 1)
     class_list = np.asarray(class_list)
     label_length = np.asarray(label_length)
+
+    # Normalize
+    mean_image = np.mean(X,axis=0)
+    X -= mean_image
+    X /= 128
 
     # Using less examples
     # X = X[num_examples:]
@@ -92,6 +97,7 @@ X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size)
 print(str(len(X_train['the_input'])) + " trainning examples")
 print(str(len(X_test['the_input'])) + " test examples")
 print(str(nb_epoch) + " epochs")
+print(X_test['the_input'][0])
 
 # nb_classes+1 for the ctc blank class
 model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
