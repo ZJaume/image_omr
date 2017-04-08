@@ -10,6 +10,8 @@ white = 255
 homus_size = 40
 border = 10
 
+nb_classes = 32
+
 #
 # Function that generates a music stave, lines-blanks ratio is 20% 80% by default
 #
@@ -33,17 +35,42 @@ def gen_stave(width, heigth):
 #
 def put_symbols(stave, symbols, offset=0):
     box = [0,int(homus_size*0.1) + border]
-    for img in imgs:
+    for img in symbols:
         stave.paste(img,
                 box=(box[0], box[1] + random.randint(-border*1,border*1)),
                 mask=ImageOps.invert(img))
         box[0] += homus_size
 
+#
+# Generate a sequence of symbols and
+# return the list of filepaths and list of corresponding labels
+#
+def gen_sequence(files, length):
+    symbols = []
+    labels = []
+    for i in range(length):
+        label = random.randint(0,nb_classes-1)
+        f = random.randint(0,len(files[label])-1)
+        symbols.append(Image.open(files[label][f]))
+        labels.append(label)
+    return symbols, labels
 
+# Create a list of lists containing filepaths of symbols
+# divided by classes
 imgs = []
-for f in glob.glob("./data/A*.jpg"):
-    imgs.append(Image.open(f))
+for i in range(nb_classes):
+    imgs.append(list(glob.glob('./data/HOMUS/train_{}/*'.format(i))))
 
-stave = gen_stave(homus_size*len(imgs),int(homus_size*1.6))
-put_symbols(stave, imgs)
-stave.show(command='eog')
+labels = ""
+for i in range(30):
+    length = random.randint(1,8) #Number of characters in the sequence
+    stave = gen_stave(homus_size*length,int(homus_size*1.6))
+    symbols, label = gen_sequence(imgs, length)
+    put_symbols(stave, symbols)
+    for l in label:
+        labels += str(l) + ' '
+    labels += '\n'
+    stave.save('./data/synth/{}.png'.format(i))
+
+with open('./data/synth/labels.txt','w') as fp:
+    fp.write(labels)
