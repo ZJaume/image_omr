@@ -1,8 +1,10 @@
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageColor, ImageOps
 from matplotlib import pyplot as plt
 import numpy as np
 import glob
 import random
+import cv2
+import sys
 
 black = 0
 white = 255
@@ -54,6 +56,38 @@ def gen_sequence(files, length):
         symbols.append(Image.open(files[label][f]))
         labels.append(label)
     return symbols, labels
+
+#
+# Calculate the centroid of the blob in a note
+#
+def centroid(img):
+    data = np.array(img.getdata()).reshape(homus_size,homus_size)
+    cols = np.sum(data,axis=0)
+    cols = outliers_filter(cols)
+    rows = np.sum(data,axis=1)
+    centroid = [np.argmin(cols),np.argmin(rows)]
+    print("Centroid",centroid)
+    img = img.convert('RGB')
+    draw = ImageDraw.Draw(img)
+    draw.point(centroid, fill=ImageColor.getrgb('red'))
+    img.show()
+
+    plt.plot(cols)
+    plt.plot(rows)
+    plt.ylabel("sum")
+    plt.xlabel("pixels")
+    plt.legend(['cols','rows'])
+    plt.show()
+
+def outliers_filter(array, m=1.75):
+    std = np.std(array)
+    mean = np.mean(array)
+    for i in range(array.shape[0]):
+        if not abs(array[i] - mean) < m * std:
+            array[i] = mean
+    return array
+
+centroid(Image.open(sys.argv[1]))
 
 # Create a list of lists containing filepaths of symbols
 # divided by classes
