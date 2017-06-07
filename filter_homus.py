@@ -29,7 +29,6 @@ for i in range(1,5):
     imgs.extend(glob.glob('./data/HOMUS_4Fold/F{}/*'.format(i)))
 
 for img in imgs:
-    mat = cv2.imread(img,0)
+    mat = dilate(cv2.imread(img,0), (3,3), 2)
     name = re.sub(r'\.pbm','',re.sub(r'\./data/HOMUS_4Fold/','',img))
-    print(dest+name+'.png')
     cv2.imwrite(dest + name + '.png',mat,[9])
