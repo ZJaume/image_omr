@@ -12,6 +12,7 @@ black = 0
 white = 255
 
 border = 10
+sep = 10
 
 nb_classes = 32
 
@@ -40,12 +41,12 @@ def gen_stave(width, heigth):
 # Given a list of images of symbols, paste it on the stave
 #
 def put_symbols(stave, symbols, offset=0):
-    box = [0,int(stave.size[1]*0.1) + border]
+    box = [sep,int(stave.size[1]*0.1) + border]
     for img in symbols:
         stave.paste(img,
                 box=(box[0], box[1] + random.randint(-border*1,border*1)),
                 mask=ImageOps.invert(img))
-        box[0] += img.size[0]
+        box[0] += img.size[0] + sep
 
 #
 # Generate a sequence of symbols and
@@ -54,13 +55,13 @@ def put_symbols(stave, symbols, offset=0):
 def gen_sequence(files, length, dic):
     symbols = []
     label = []
-    size = 0    # Accumulate the width of every image
+    size = sep    # Accumulate the width of every image
     for i in range(length):
         ran = random.randint(0,len(files)-1)
         label_i = dic[parse_label(files[ran])]
         symbols.append(ImageOps.invert(Image.open(files[ran])))
         label.append(label_i)
-        size += symbols[-1].size[0]
+        size += symbols[-1].size[0] + sep
     return symbols, label, size
 
 #
