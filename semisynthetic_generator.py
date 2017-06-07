@@ -2,17 +2,21 @@ from PIL import Image, ImageDraw, ImageColor, ImageOps
 from matplotlib import pyplot as plt
 import numpy as np
 import glob
+import re
 import random
 import cv2
 import sys
+import json
 
 black = 0
 white = 255
 
-homus_size = 40
 border = 10
 
 nb_classes = 32
+
+dest = './data/synth/'
+source = './data/HOMUS_filtered/'
 
 #
 # Function that generates a music stave, lines-blanks ratio is 20% 80% by default
@@ -36,32 +40,44 @@ def gen_stave(width, heigth):
 # Given a list of images of symbols, paste it on the stave
 #
 def put_symbols(stave, symbols, offset=0):
-    box = [0,int(homus_size*0.1) + border]
+    box = [0,int(stave.size[1]*0.1) + border]
     for img in symbols:
         stave.paste(img,
                 box=(box[0], box[1] + random.randint(-border*1,border*1)),
                 mask=ImageOps.invert(img))
-        box[0] += homus_size
+        box[0] += img.size[0]
 
 #
 # Generate a sequence of symbols and
 # return the list of filepaths and list of corresponding labels
 #
-def gen_sequence(files, length):
+def gen_sequence(files, length, dic):
     symbols = []
-    labels = []
+    label = []
+    size = 0    # Accumulate the width of every image
     for i in range(length):
-        label = random.randint(0,nb_classes-1)
-        f = random.randint(0,len(files[label])-1)
-        symbols.append(Image.open(files[label][f]))
-        labels.append(label)
-    return symbols, labels
+        ran = random.randint(0,len(files)-1)
+        label_i = dic[parse_label(files[ran])]
+        symbols.append(ImageOps.invert(Image.open(files[ran])))
+        label.append(label_i)
+        size += symbols[-1].size[0]
+    return symbols, label, size
 
 #
-# Calculate the centroid of the blob in a note
+# Parse the label of an image from the filename
+#
+def parse_label(filename):
+    return re.sub(r'\.png','',re.sub(r'\./data/HOMUS_filtered/F./W.*_.*_','',filename))
+
+#
+# Calculate where is  the head of the note
 #
 def centroid(img):
-    data = np.array(img.getdata()).reshape(homus_size,homus_size)
+    print(img.size)
+    print(img.mode)
+    print(img.format)
+
+    data = np.array(img.getdata(0)).reshape(img.size[0],img.size[1])
     cols = np.sum(data,axis=0)
     cols = outliers_filter(cols)
     rows = np.sum(data,axis=1)
@@ -87,24 +103,36 @@ def outliers_filter(array, m=1.75):
             array[i] = mean
     return array
 
-centroid(Image.open(sys.argv[1]))
+#centroid(ImageOps.invert(Image.open(sys.argv[1])))
 
-# Create a list of lists containing filepaths of symbols
-# divided by classes
+# Create a list of filepaths of symbols
 imgs = []
-for i in range(nb_classes):
-    imgs.append(list(glob.glob('./data/HOMUS/train_{}/*'.format(i))))
+for i in range(1,5):
+    imgs.extend(glob.glob(source + 'F{}/*'.format(i)))
+
+# Get the class name from the filename
+# and encode them in a dictionary json file
+dictionary = {}
+for img in imgs:
+    label = parse_label(img)
+    if label not in dictionary:
+        dictionary[label] = len(dictionary)
+
+with open(dest + 'dictionary.json', 'w') as f:
+    json.dump(dictionary, f, sort_keys=True, indent=4)
+print(dictionary)
+print("---> Imported to json")
 
 labels = ""
 for i in range(30):
     length = random.randint(1,8) #Number of characters in the sequence
-    stave = gen_stave(homus_size*length,int(homus_size*1.6))
-    symbols, label = gen_sequence(imgs, length)
+    symbols, label, size = gen_sequence(imgs, length, dictionary)
+    stave = gen_stave(size,120)
     put_symbols(stave, symbols)
     for l in label:
         labels += str(l) + ' '
     labels += '\n'
-    stave.save('./data/synth/{}.png'.format(i))
+    stave.save(dest + '{}.png'.format(i))
 
-with open('./data/synth/labels.txt','w') as fp:
+with open(dest + 'labels.txt','w') as fp:
     fp.write(labels)
