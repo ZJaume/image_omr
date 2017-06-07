@@ -12,7 +12,7 @@ black = 0
 white = 255
 
 border = 30
-sep = 10
+sep = 15
 
 nb_classes = 32
 
@@ -20,11 +20,11 @@ dest = './data/synth/'
 source = './data/HOMUS_filtered/'
 
 #
-# Function that generates a music stave, lines-blanks ratio is 20% 80% by default
+# Function that generates a music stave, lines-blanks ratio is 15% 85% by default
 #
 def gen_stave(width, heigth):
-    blank_size = int(heigth*0.80)//4
-    line_size = int(heigth*0.20)//5
+    blank_size = int(heigth*0.85)//4
+    line_size = int(heigth*0.15)//5
 
     im = Image.new('L',(width,heigth + border*2), color=white)
     draw = ImageDraw.Draw(im)
