@@ -11,7 +11,7 @@ import json
 black = 0
 white = 255
 
-border = 10
+border = 30
 sep = 10
 
 nb_classes = 32
@@ -41,10 +41,10 @@ def gen_stave(width, heigth):
 # Given a list of images of symbols, paste it on the stave
 #
 def put_symbols(stave, symbols, offset=0):
-    box = [sep,int(stave.size[1]*0.1) + border]
+    box = [sep,int(stave.size[1]*0.05) + border]
     for img in symbols:
         stave.paste(img,
-                box=(box[0], box[1] + random.randint(-border*1,border*1)),
+                box=(box[0], box[1] ),
                 mask=ImageOps.invert(img))
         box[0] += img.size[0] + sep
 
@@ -128,7 +128,7 @@ labels = ""
 for i in range(30):
     length = random.randint(1,8) #Number of characters in the sequence
     symbols, label, size = gen_sequence(imgs, length, dictionary)
-    stave = gen_stave(size,120)
+    stave = gen_stave(size,80)
     put_symbols(stave, symbols)
     for l in label:
         labels += str(l) + ' '
