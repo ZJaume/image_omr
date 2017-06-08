@@ -119,7 +119,7 @@ class AccCallback(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         if self.log_level == True:
-            log_file = file('log_'+str(epoch)+'.log','w')
+            log_file = file('logs/epoch_'+str(epoch)+'.log','w')
 
         count = 0
         while count <= self.inputs['the_input'].shape[0]:
