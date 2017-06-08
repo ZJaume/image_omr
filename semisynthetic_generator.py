@@ -15,6 +15,7 @@ border = 30
 sep = 15
 
 nb_classes = 32
+nb_examples = 20000
 
 dest = './data/synth/'
 source = './data/HOMUS_filtered/'
@@ -124,8 +125,9 @@ with open(dest + 'dictionary.json', 'w') as f:
 print(dictionary)
 print("---> Imported to json")
 
+print("Generating {} examples...".format(nb_examples))
 labels = ""
-for i in range(30):
+for i in range(nb_examples):
     length = random.randint(1,8) #Number of characters in the sequence
     symbols, label, size = gen_sequence(imgs, length, dictionary)
     stave = gen_stave(size,80)
@@ -134,6 +136,10 @@ for i in range(30):
         labels += str(l) + ' '
     labels += '\n'
     stave.save(dest + '{}.png'.format(i))
+
+    if i in [nb_examples//4, nb_examples//2, nb_examples//4*3]:
+        print("{} examples generated...".format(i))
+print("Done!")
 
 with open(dest + 'labels.txt','w') as fp:
     fp.write(labels)
