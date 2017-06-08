@@ -1,7 +1,6 @@
 import json
 
-paths = [ "./data/lilypond/TestSet/",
-        "./data/lilypond/TrainSet/"]
+paths = [ "./data/lilypond/" ]
 dict_path = "./data/lilypond/dictionary.json"
 
 #
