@@ -110,17 +110,30 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs, blank_label, logs=False):
+    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False):
         self.test_func = test_func
         self.inputs = inputs
         self.blank = blank_label
         self.log_level = logs
+        self.batch_size = batch_size
 
     def on_epoch_end(self, epoch, logs={}):
         if self.log_level == True:
             log_file = file('log_'+str(epoch)+'.log','w')
 
-        func_out = self.test_func([self.inputs['the_input']])[0]
+        count = 0
+        while count <= self.inputs['the_input'].shape[0]:
+            if count==0:
+                func_out = self.test_func([self.inputs['the_input'][count:count + self.batch_size]])[0]
+            elif count + self.batch_size <= self.inputs['the_input'].shape[0]:
+                func_out = np.append(func_out,
+                        self.test_func([self.inputs['the_input'][count:count + self.batch_size]])[0],
+                        axis=0)
+            else:
+                func_out = np.append(func_out,
+                        self.test_func([self.inputs['the_input'][count:]])[0],
+                        axis=0)
+            count += self.batch_size
         ed = 0
         mean_ed = 0.0
         mean_norm_ed = 0.0
