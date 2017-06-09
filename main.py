@@ -31,14 +31,12 @@ def load_data(downsample_factor, path):
     num_paths = len(glob.glob(path + '*.png'))
     paths = sort_paths(num_paths, len(image_list), path, '.png')
     labels = open(path + 'labels_cod.txt')
-    print(labels)
 
     for filename in paths:
         im=Image.open(filename).resize((img_w,img_h)).convert('L')
         im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
         label = np.fromstring(labels.readline(), dtype=int, sep=' ')
         label_length.append(len(label))
-        print(label)
         fill = np.full((lb_max_length - len(label),), -1, dtype=int)
         class_list.append(np.append(label,fill))
         image_list.append(np.asarray(im).astype('float32'))#/255)
@@ -53,7 +51,6 @@ def load_data(downsample_factor, path):
         X = np.asarray(image_list).reshape(n, img_h, img_w, 1)
     class_list = np.asarray(class_list)
     label_length = np.asarray(label_length)
-    print(label_length)
 
     # Normalize
     mean_image = np.mean(X,axis=0)
