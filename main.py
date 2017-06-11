@@ -3,11 +3,12 @@ import numpy as np
 import glob
 import models
 import sys
+import os
+import json
 
 from keras.models import Model, save_model, load_model
 import keras.backend as K
 
-nb_classes = 215
 nb_epoch = 50
 batch_size = 128
 
@@ -18,6 +19,15 @@ lb_max_length = 15
 
 # Size of the images
 img_w, img_h= 120, 32
+
+# Read the filepath and the classes
+if len(sys.argv[1]) < 1:
+    print("The first argument must be the dataset path")
+if not os.path.isdir(sys.argv[1]):
+    print("The first argument must be an existing directory")
+path = sys.argv[1]
+nb_classes = len(json.load(open(path + "dictionary.json", 'r')))
+print("Number of classes:",nb_classes)
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -86,7 +96,6 @@ def sort_paths(num_paths, prefix, suffix, offset=0):
         sorted_paths.append(prefix + str(i) + suffix)
     return sorted_paths
 
-path = sys.argv[1]
 num_paths = len(glob.glob(path + '*.png'))
 paths = sort_paths(num_paths, path, '.png')
 labels = open(path + 'labels_cod.txt')
