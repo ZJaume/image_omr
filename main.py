@@ -22,27 +22,25 @@ img_w, img_h= 120, 32
 #
 # Load data function, recieves downsample factor equal to pool size
 #
-def load_data(downsample_factor):
+def load_data(downsample_factor, path):
     image_list = []
     class_list = []
     label_length = []
     num_examples = batch_size*90
 
-    for directory in ['TrainSet', 'TestSet']:
-        path = './data/lilypond/{}/'.format(directory)
-        num_paths = len(glob.glob(path + '*.png'))
-        paths = sort_paths(num_paths, len(image_list), path, '.png')
-        labels = open(path + 'labels_cod.txt')
+    num_paths = len(glob.glob(path + '*.png'))
+    paths = sort_paths(num_paths, len(image_list), path, '.png')
+    labels = open(path + 'labels_cod.txt')
 
-        for filename in paths:
-            im=Image.open(filename).resize((img_w,img_h)).convert('L')
-            im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
-            label = np.fromstring(labels.readline(), dtype=int, sep=' ')
-            label_length.append(len(label))
-            fill = np.full((lb_max_length - len(label),), -1, dtype=int)
-            class_list.append(np.append(label,fill))
-            image_list.append(np.asarray(im).astype('float32'))#/255)
-            #num_examples-=1
+    for filename in paths:
+        im=Image.open(filename).resize((img_w,img_h)).convert('L')
+        im=ImageOps.invert(im)      # Meaning of grey level is 255 (black) and 0 (white)
+        label = np.fromstring(labels.readline(), dtype=int, sep=' ')
+        label_length.append(len(label))
+        fill = np.full((lb_max_length - len(label),), -1, dtype=int)
+        class_list.append(np.append(label,fill))
+        image_list.append(np.asarray(im).astype('float32'))#/255)
+        #num_examples-=1
 
     n = len(image_list)     # Total examples
     if K.image_dim_ordering() == 'th':
@@ -92,7 +90,7 @@ def sort_paths(num_paths, offset, prefix, suffix):
         sorted_paths.append(prefix + str(i) + suffix)
     return sorted_paths
 
-X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size)
+X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size, "data/lilypond/")
 
 print(str(len(X_train['the_input'])) + " trainning examples")
 print(str(len(X_test['the_input'])) + " test examples")
