@@ -2,7 +2,7 @@ from PIL import Image, ImageOps
 import numpy as np
 import glob
 import models
-import os
+import sys
 
 from keras.models import Model, save_model, load_model
 import keras.backend as K
@@ -22,15 +22,11 @@ img_w, img_h= 120, 32
 #
 # Load data function, recieves downsample factor equal to pool size
 #
-def load_data(downsample_factor, path):
+def load_data(downsample_factor, paths, labels):
     image_list = []
     class_list = []
     label_length = []
     num_examples = batch_size*90
-
-    num_paths = len(glob.glob(path + '*.png'))
-    paths = sort_paths(num_paths, len(image_list), path, '.png')
-    labels = open(path + 'labels_cod.txt')
 
     for filename in paths:
         im=Image.open(filename).resize((img_w,img_h)).convert('L')
@@ -84,13 +80,18 @@ def load_data(downsample_factor, path):
 
     return inputs_train, inputs_test, outputs_train, outputs_test, input_shape
 
-def sort_paths(num_paths, offset, prefix, suffix):
+def sort_paths(num_paths, prefix, suffix, offset=0):
     sorted_paths = []
     for i in range(1+offset, num_paths+offset+1):
         sorted_paths.append(prefix + str(i) + suffix)
     return sorted_paths
 
-X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size, "data/lilypond/")
+path = sys.argv[1]
+num_paths = len(glob.glob(path + '*.png'))
+paths = sort_paths(num_paths, path, '.png')
+labels = open(path + 'labels_cod.txt')
+
+X_train, X_test, Y_train, Y_test, input_shape = load_data(pool_size, paths, labels)
 
 print(str(len(X_train['the_input'])) + " trainning examples")
 print(str(len(X_test['the_input'])) + " test examples")
