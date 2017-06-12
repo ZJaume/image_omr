@@ -90,3 +90,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Other
+data/HOMUS_4Fold/*

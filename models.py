@@ -31,22 +31,49 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
         img_w = input_shape[1]
 
     # Network parameters
-    conv_num_filters = 16
-    filter_size = 3
+    nb_filters1 = 64
+    nb_filters2 = 128
+    nb_filters3 = 256
+    nb_filters4 = 512
+
+    filter_size1 = 3
+    filter_size2 = 3
+    filter_size3 = 3
+    filter_size4 = 3
+
+    pool1 = (pool_size, pool_size)
+    pool2 = (pool_size, 1)
+
     time_dense_size = 32
-    rnn_size = 128
-    output_size = 28
+    rnn_size = 256
     act = 'relu'
 
     input_data = Input(name='the_input', shape=input_shape, dtype='float32')
-    inner = Convolution2D(conv_num_filters, filter_size, filter_size, border_mode='same',
-                          activation=act, init='he_normal', name='conv1')(input_data)
-    inner = MaxPooling2D(pool_size=(pool_size, pool_size), name='max1')(inner)
-    inner = Convolution2D(conv_num_filters, filter_size, filter_size, border_mode='same',
-                          activation=act, init='he_normal', name='conv2')(inner)
-    inner = MaxPooling2D(pool_size=(pool_size, pool_size), name='max2')(inner)
+    # Convolution block 1
+    inner = Convolution2D(nb_filters1, filter_size1, filter_size1, border_mode='same',
+                          activation=act, name='conv1')(input_data)
+    inner = MaxPooling2D(pool_size=pool1, name='max1')(inner)
 
-    conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 2)) * conv_num_filters)
+    # Convolution block 4
+    inner = Convolution2D(nb_filters2, filter_size2, filter_size2, border_mode='same',
+                          activation=act, name='conv2')(inner)
+    inner = MaxPooling2D(pool_size=pool1, name='max2')(inner)
+
+    # Convolution block 3
+    inner = Convolution2D(nb_filters3, filter_size3, filter_size3, border_mode='same',
+                          activation=act, name='conv3_1')(inner)
+    inner = Convolution2D(nb_filters3, filter_size3, filter_size3, border_mode='same',
+                          activation=act, name='conv3_2')(inner)
+    inner = MaxPooling2D(pool_size=pool2, name='max3')(inner)
+
+    # Convolution block 4
+    inner = Convolution2D(nb_filters4, filter_size4, filter_size4, border_mode='same',
+                          activation=act, name='conv4_1')(inner)
+    inner = Convolution2D(nb_filters4, filter_size4, filter_size4, border_mode='same',
+                          activation=act, name='conv4_2')(inner)
+    inner = MaxPooling2D(pool_size=pool2, name='max4')(inner)
+
+    conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 4)) * nb_filters4)
     inner = Permute((3,1,2))(inner)
     inner = Reshape(target_shape=conv_to_rnn_dims, name='reshape')(inner)
 
@@ -55,8 +82,8 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    gru_1 = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru1'))(inner)
-    gru_2 = Bidirectional(GRU(rnn_size, return_sequences=True, init='he_normal', name='gru2'))(gru_1)
+    gru_1 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru1'))(inner)
+    gru_2 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru2'))(gru_1)
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',
@@ -83,17 +110,30 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs, blank_label, logs=False):
+    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False):
         self.test_func = test_func
         self.inputs = inputs
         self.blank = blank_label
         self.log_level = logs
+        self.batch_size = batch_size
 
     def on_epoch_end(self, epoch, logs={}):
         if self.log_level == True:
-            log_file = file('log_'+str(epoch)+'.log','w')
+            log_file = file('logs/epoch_'+str(epoch)+'.log','w')
 
-        func_out = self.test_func([self.inputs['the_input']])[0]
+        count = 0
+        while count <= self.inputs['the_input'].shape[0]:
+            if count==0:
+                func_out = self.test_func([self.inputs['the_input'][count:count + self.batch_size]])[0]
+            elif count + self.batch_size <= self.inputs['the_input'].shape[0]:
+                func_out = np.append(func_out,
+                        self.test_func([self.inputs['the_input'][count:count + self.batch_size]])[0],
+                        axis=0)
+            else:
+                func_out = np.append(func_out,
+                        self.test_func([self.inputs['the_input'][count:]])[0],
+                        axis=0)
+            count += self.batch_size
         ed = 0
         mean_ed = 0.0
         mean_norm_ed = 0.0
