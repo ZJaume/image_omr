@@ -135,7 +135,7 @@ for i in range(nb_examples):
     for l in label:
         labels += str(l) + ' '
     labels += '\n'
-    stave.save(dest + '{}.png'.format(i))
+    stave.save(dest + '{}.png'.format(i+1))
 
     if i in [nb_examples//4, nb_examples//2, nb_examples//4*3]:
         print("{} examples generated...".format(i))
