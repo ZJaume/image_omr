@@ -11,6 +11,7 @@ import keras.backend as K
 
 nb_epoch = 50
 batch_size = 128
+super_batch = 10000
 
 pool_size = 2
 
@@ -88,6 +89,30 @@ def shuffle(a, b):
     randomize = np.arange(a.shape[0])
     np.random.shuffle(randomize)
     return a[randomize], b[randomize]
+
+#
+# Perform trainning dividing each epoch in batches
+#
+def train_super_epoch(paths, labels, n_partition):
+    # Load test examples
+    X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
+
+    model, test_func = model.create_rnn(input_shape, lb_max_length, nb_classes+1)
+    acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
+
+    for i in range(nb_epoch):
+        print("Super epoch {}/{}".format(i,nb_epoch))
+        j = 0
+        while j <= paths.shape[0]:
+            if j+super_batch < n_partition:
+                X_train, Y_train = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
+            else:
+                X_train, Y_train = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
+            print("\tTrainning from {} to {}".format(j,j+X_train['the_input'].shape[0])
+            model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
+        #test
+        acc_callback.on_epoch_end(i)
+    return model
 
 fp = open(path + 'labels_cod.txt', 'r')
 labels = fp.read().split('\n')
