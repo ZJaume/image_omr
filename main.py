@@ -101,7 +101,6 @@ labels = np.asarray(labels)
 # Divide in train and test data
 n_partition = int(num_paths*0.9)    # 10% validation
 paths, labels = shuffle(paths, labels)
-print(paths, labels)
 
 X_train, Y_train, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 X_test, Y_test, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
