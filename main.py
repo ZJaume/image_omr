@@ -97,19 +97,21 @@ def train_super_epoch(paths, labels, n_partition):
     # Load test examples
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
-    model, test_func = model.create_rnn(input_shape, lb_max_length, nb_classes+1)
+    model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
     acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
 
     for i in range(nb_epoch):
-        print("Super epoch {}/{}".format(i,nb_epoch))
+        print("Super epoch {}/{}".format(i+1,nb_epoch))
         j = 0
-        while j <= paths.shape[0]:
+        while j < n_partition:
             if j+super_batch < n_partition:
-                X_train, Y_train = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
+                X_train, Y_train, input_shape = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
             else:
-                X_train, Y_train = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
-            print("\tTrainning from {} to {}".format(j,j+X_train['the_input'].shape[0])
-            model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
+                X_train, Y_train, input_shape = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
+            print("\t -Trainning from {} to {}".format(j,j+X_train['the_input'].shape[0]))
+            hist = model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
+            print("\t Loss: %0.3f" % hist.history['loss'][0])
+            j += super_batch
         #test
         acc_callback.on_epoch_end(i)
     return model
@@ -127,6 +129,8 @@ labels = np.asarray(labels)
 n_partition = int(num_paths*0.9)    # 10% validation
 paths, labels = shuffle(paths, labels)
 
+train_super_epoch(paths, labels, n_partition)
+'''
 X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
 X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
@@ -140,6 +144,7 @@ acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, log
 
 model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
         callbacks=[acc_callback], validation_data=(X_test,Y_test['ctc']))
+        '''
 #model.load_weights("lilypond_rnn-w.h5")
 #out = test_func([X['the_input'][1:2]])[0]
 #print(X['the_labels'][1:2])
