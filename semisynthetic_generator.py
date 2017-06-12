@@ -15,7 +15,7 @@ border = 30
 sep = 15
 
 nb_classes = 32
-nb_examples = 20000
+nb_examples = 100000
 
 dest = './data/synth/'
 source = './data/HOMUS_filtered/'
@@ -137,7 +137,7 @@ for i in range(nb_examples):
     labels += '\n'
     stave.save(dest + '{}.png'.format(i+1))
 
-    if i in [nb_examples//4, nb_examples//2, nb_examples//4*3]:
+    if i%10000 == 0:
         print("{} examples generated...".format(i))
 print("Done!")
 
