@@ -15,7 +15,7 @@ batch_size = 128
 pool_size = 2
 
 # Max length of an example label
-lb_max_length = 15
+lb_max_length = 8
 
 # Size of the images
 img_w, img_h= 120, 32
@@ -102,8 +102,8 @@ labels = np.asarray(labels)
 n_partition = int(num_paths*0.9)    # 10% validation
 paths, labels = shuffle(paths, labels)
 
-X_train, Y_train, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
-X_test, Y_test, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
+X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
+X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
 print(str(len(X_train['the_input'])) + " trainning examples")
 print(str(len(X_test['the_input'])) + " test examples")
