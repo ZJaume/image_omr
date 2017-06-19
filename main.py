@@ -22,10 +22,12 @@ lb_max_length = 8
 img_w, img_h= 120, 32
 
 # Read the filepath and the classes
-if len(sys.argv[1]) < 1:
-    print("The first argument must be the dataset path")
+if len(sys.argv) <= 1:
+    print("ERROR: the first argument must be the dataset path")
+    sys.exit(0)
 if not os.path.isdir(sys.argv[1]):
-    print("The first argument must be an existing directory")
+    print("ERROR: the first argument must be an existing directory")
+    sys.exit(0)
 path = sys.argv[1]
 nb_classes = len(json.load(open(path + "dictionary.json", 'r')))
 print("Number of classes:",nb_classes)
@@ -63,12 +65,6 @@ def load_data(downsample_factor, paths, labels):
     mean_image = np.mean(X,axis=0)
     X -= mean_image
     X /= 128
-
-    # Using less examples
-    # X = X[num_examples:]
-    # class_list = class_list[num_examples:]
-    # label_length = label_length[num_examples:]
-    # n = num_examples
 
     inputs_train = { 'the_input' : X,
                 'the_labels' : class_list,
@@ -108,11 +104,11 @@ def train_super_epoch(paths, labels, n_partition):
                 X_train, Y_train, input_shape = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
             else:
                 X_train, Y_train, input_shape = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
-            print("\t -Trainning from {} to {}".format(j,j+X_train['the_input'].shape[0]))
+            print("\t-Trainning from {} to {}".format(j,j+X_train['the_input'].shape[0]))
             hist = model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
-            print("\t Loss: %0.3f" % hist.history['loss'][0])
+            print("\t  Loss: %0.3f" % hist.history['loss'][0])
+            print("")
             j += super_batch
-        #test
         acc_callback.on_epoch_end(i)
     return model
 
