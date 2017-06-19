@@ -14,7 +14,6 @@ white = 255
 border = 30
 sep = 15
 
-nb_classes = 32
 nb_examples = 100000
 
 dest = './data/synth/'
@@ -74,11 +73,9 @@ def parse_label(filename):
 #
 # Filter some unusual, useless or difficult classes
 #
-def class_filter(paths):
-    time = r'([A-Za-z0-9 -_\/]+((2-2)|(3-8)|(9-8)|(12-8))-Time.*)'
-    notes = r'([A-Za-z0-9 -_\/]+((Sixty-Four)|(Thirty-Two))*)'
-    other = r'([A-Za-z0-9 -_\/]+((Natural)|(Double-Sharp)|(Sharp)|(Flat)|(Dot)|(Barline)).*)'
-    return [path for path in paths if not (re.match(regex,path) or re.match(notes,path) or re.match(other,path))  ]
+def class_filter(label):
+    regex = r'((3-8)|(9-8)|(12-8)|(Sixty-Four)|(Thirty-Two)|(Natural)|(Double-Sharp)|(Sharp)|(Flat)|(Dot)|(Barline))+'
+    return re.match(regex,label)
 
 #
 # Calculate where is  the head of the note
@@ -120,14 +117,16 @@ def outliers_filter(array, m=1.75):
 imgs = []
 for i in range(1,5):
     imgs.extend(glob.glob(source + 'F{}/*'.format(i)))
-imgs = class_filter(imgs)
 
 # Get the class name from the filename
 # and encode them in a dictionary json file
 dictionary = {}
 for img in imgs:
     label = parse_label(img)
-    if label not in dictionary:
+    if class_filter(label):
+        print(img)
+        imgs.remove(img)
+    elif label not in dictionary:
         dictionary[label] = len(dictionary)
 
 with open(dest + 'dictionary.json', 'w') as f:
