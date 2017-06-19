@@ -72,6 +72,15 @@ def parse_label(filename):
     return re.sub(r'\.png','',re.sub(r'\./data/HOMUS_filtered/F./W.*_.*_','',filename))
 
 #
+# Filter some unusual, useless or difficult classes
+#
+def class_filter(paths):
+    time = r'([A-Za-z0-9 -_\/]+((2-2)|(3-8)|(9-8)|(12-8))-Time.*)'
+    notes = r'([A-Za-z0-9 -_\/]+((Sixty-Four)|(Thirty-Two))*)'
+    other = r'([A-Za-z0-9 -_\/]+((Natural)|(Double-Sharp)|(Sharp)|(Flat)|(Dot)|(Barline)).*)'
+    return [path for path in paths if not (re.match(regex,path) or re.match(notes,path) or re.match(other,path))  ]
+
+#
 # Calculate where is  the head of the note
 #
 def centroid(img):
@@ -111,6 +120,7 @@ def outliers_filter(array, m=1.75):
 imgs = []
 for i in range(1,5):
     imgs.extend(glob.glob(source + 'F{}/*'.format(i)))
+imgs = class_filter(imgs)
 
 # Get the class name from the filename
 # and encode them in a dictionary json file
