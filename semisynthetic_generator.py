@@ -58,7 +58,11 @@ def gen_sequence(files, length, dic):
     size = sep    # Accumulate the width of every image
     for i in range(length):
         ran = random.randint(0,len(files)-1)
-        label_i = dic[parse_label(files[ran])]
+        label_i = parse_label(files[ran])
+        if label_i not in dic:
+            print("ERROR",files[ran])
+            return  None, [files[ran]], None
+        label_i = dic[label_i]
         symbols.append(ImageOps.invert(Image.open(files[ran])))
         label.append(label_i)
         size += symbols[-1].size[0] + sep
@@ -121,13 +125,14 @@ for i in range(1,5):
 # Get the class name from the filename
 # and encode them in a dictionary json file
 dictionary = {}
+files = []
+print(len(imgs))
 for img in imgs:
     label = parse_label(img)
-    if class_filter(label):
-        print(img)
-        imgs.remove(img)
-    elif label not in dictionary:
-        dictionary[label] = len(dictionary)
+    if not class_filter(label):
+        files.append(img)
+        if label not in dictionary:
+            dictionary[label] = len(dictionary)
 
 with open(dest + 'dictionary.json', 'w') as f:
     json.dump(dictionary, f, sort_keys=True, indent=4)
@@ -138,7 +143,10 @@ print("Generating {} examples...".format(nb_examples))
 labels = ""
 for i in range(nb_examples):
     length = random.randint(1,8) #Number of characters in the sequence
-    symbols, label, size = gen_sequence(imgs, length, dictionary)
+    symbols, label, size = gen_sequence(files, length, dictionary)
+    if symbols is None:
+        print(label in files)
+        sys.exit(-1)
     stave = gen_stave(size,80)
     put_symbols(stave, symbols)
     for l in label:
