@@ -129,6 +129,11 @@ fp.close()
 num_paths = len(glob.glob(path + '*.png'))
 paths = np.asarray(sort_paths(num_paths, path, '.png'))
 labels = np.asarray(labels)
+# Calculate de max length label
+for lb in labels:
+    label = np.fromstring(lb, dtype=int, sep=' ')
+    lb_max_length = max(lb_max_length,len(label))
+print("Max length label: %d" % lb_max_length)
 
 # Divide in train and test data
 n_partition = int(num_paths*0.9)    # 10% validation
