@@ -162,7 +162,7 @@ class AccCallback(keras.callbacks.Callback):
 
         mean_ed = mean_ed / len(func_out)
         mean_norm_ed = mean_norm_ed / len(func_out)
-        print("\n --Mean edit distance: %0.3f, mean normalized edit distance: %0.3f" % (mean_ed, mean_norm_ed))
+        print("--Mean edit distance: %0.3f, mean normalized edit distance: %0.3f\n" % (mean_ed, mean_norm_ed))
 
     def levenshtein(self,raw_a,raw_b):
         # Remove -1 from the lists

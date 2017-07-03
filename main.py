@@ -66,14 +66,23 @@ def load_data(downsample_factor, paths, labels):
     X -= mean_image
     X /= 128
 
-    inputs_train = { 'the_input' : X,
+    inputs= { 'the_input' : X,
                 'the_labels' : class_list,
                 'input_length' : np.full((n,), img_w // downsample_factor ** 2 - 2),
                 'label_length' : label_length,
                 }
-    outputs_train = {'ctc' : np.zeros((n,), dtype=int)}
+    outputs= {'ctc' : np.zeros((n,), dtype=int)}
+    '''
+    np.set_printoptions(threshold=np.nan)
+    print(X.shape)
+    print(X[0])
+    print(class_list[:5])
+    print(inputs_train['input_length'][:5])
+    print(label_length[:5])
+    print(outputs_train['ctc'][:5])
+    '''
 
-    return inputs_train, outputs_train, input_shape
+    return inputs, outputs, input_shape
 
 def sort_paths(num_paths, prefix, suffix, offset=0):
     sorted_paths = []
