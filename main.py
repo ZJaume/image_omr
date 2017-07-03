@@ -30,7 +30,7 @@ if not os.path.isdir(sys.argv[1]):
     sys.exit(0)
 path = sys.argv[1]
 nb_classes = len(json.load(open(path + "dictionary.json", 'r')))
-print("Number of classes:",nb_classes)
+print("Number of classes: %d " % nb_classes)
 
 #
 # Load data function, recieves downsample factor equal to pool size
@@ -72,15 +72,6 @@ def load_data(downsample_factor, paths, labels):
                 'label_length' : label_length,
                 }
     outputs= {'ctc' : np.zeros((n,), dtype=int)}
-    '''
-    np.set_printoptions(threshold=np.nan)
-    print(X.shape)
-    print(X[0])
-    print(class_list[:5])
-    print(inputs_train['input_length'][:5])
-    print(label_length[:5])
-    print(outputs_train['ctc'][:5])
-    '''
 
     return inputs, outputs, input_shape
 
@@ -138,6 +129,9 @@ print("Max length label: %d" % lb_max_length)
 # Divide in train and test data
 n_partition = int(num_paths*0.9)    # 10% validation
 paths, labels = shuffle(paths, labels)
+print("%d training examples" % n_partition)
+print("%d test examples" % (num_paths-n_partition))
+print("%d epochs" % nb_epoch)
 
 train_super_epoch(paths, labels, n_partition)
 '''
