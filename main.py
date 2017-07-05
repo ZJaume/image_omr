@@ -92,8 +92,6 @@ def shuffle(a, b):
 def train_super_epoch(paths, labels, n_partition):
     # Load test examples
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
-    X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
-    print(Y_train['ctc'])
 
     model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
     acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
@@ -103,13 +101,11 @@ def train_super_epoch(paths, labels, n_partition):
         j = 0
         while j < n_partition:
             if j+super_batch < n_partition:
-                #X_train, Y_train, input_shape = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
-                hist = model.fit(X_train[j:j+super_batch], Y_train['ctc'][j:j+super_batch], batch_size=batch_size, nb_epoch=1, verbose=0)
+                X_train, Y_train, input_shape = load_data(pool_size, paths[j:j+super_batch], labels[j:j+super_batch])
             else:
-                #X_train, Y_train, input_shape = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
-                hist = model.fit(X_train[j:n_partition], Y_train['ctc'][j:n_partition], batch_size=batch_size, nb_epoch=1, verbose=0)
-            print("\t-Trainning from {} to {}".format(j,j+super_batch))
-            #hist = model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
+                X_train, Y_train, input_shape = load_data(pool_size, paths[j:n_partition], labels[j:n_partition])
+            print("\t-Trainning from {} to {}".format(j,j+X_train['the_input'].shape[0]))
+            hist = model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=1, verbose=0)
             print("\t  Loss: %0.3f" % hist.history['loss'][0])
             print("")
             j += super_batch
