@@ -9,6 +9,8 @@ from keras import backend as K
 import keras.callbacks
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # the actual loss calc occurs here despite it not being
@@ -165,18 +167,18 @@ class AccCallback(keras.callbacks.Callback):
 
         mean_ed = mean_ed / len(func_out)
         mean_norm_ed = mean_norm_ed / len(func_out)
-        history['mean_ed'].append(mean_ed)
-        history['mean_norm_ed'].append(mean_norm_ed)
+        self.history['mean_ed'].append(mean_ed)
+        self.history['mean_norm_ed'].append(mean_norm_ed)
         print("--Mean edit distance: %0.3f, mean normalized edit distance: %0.3f\n" % (mean_ed, mean_norm_ed))
 
     def on_train_end(self,logs=None):
         plt.clf()
-        plt.plot(history['mean_ed'])
-        plt.plot(history['mean_norm_ed'])
+        plt.plot(self.history['mean_ed'])
+        plt.plot(self.history['mean_norm_ed'])
         plt.title('Model edit distance')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
-        plt.legend(['mean_ed','mean_norm_ed'], loc='upper_left')
+        plt.legend(['mean_ed','mean_norm_ed'], loc='upper left')
         plt.savefig(self.name + '.png')
 
     def levenshtein(self,raw_a,raw_b):

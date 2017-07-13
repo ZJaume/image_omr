@@ -9,7 +9,7 @@ import json
 from keras.models import Model, save_model, load_model
 import keras.backend as K
 
-nb_epoch = 2
+nb_epoch = 20
 batch_size = 128
 super_batch = 10000
 
