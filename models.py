@@ -2,7 +2,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
 from keras.layers import Reshape, Lambda, merge, Permute
 from keras.models import Sequential, Model
-from keras.layers.recurrent import GRU
+from keras.layers.recurrent import GRU, LSTM
 from keras.layers.wrappers import Bidirectional
 from keras.optimizers import SGD, RMSprop, Nadam
 from keras import backend as K
@@ -85,8 +85,8 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    gru_1 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru1'))(inner)
-    gru_2 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru2'))(gru_1)
+    gru_1 = Bidirectional(LSTM(rnn_size, return_sequences=True, name='gru1'))(inner)
+    gru_2 = Bidirectional(LSTM(rnn_size, return_sequences=True, name='gru2'))(gru_1)
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',
