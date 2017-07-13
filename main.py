@@ -9,7 +9,7 @@ import json
 from keras.models import Model, save_model, load_model
 import keras.backend as K
 
-nb_epoch = 50
+nb_epoch = 2
 batch_size = 128
 super_batch = 10000
 
@@ -96,7 +96,7 @@ def train_super_epoch(paths, labels, n_partition):
     print(Y_train['ctc'])
 
     model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
-    acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
+    acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc_gru')
 
     for i in range(nb_epoch):
         print("Super epoch {}/{}".format(i+1,nb_epoch))
@@ -114,6 +114,7 @@ def train_super_epoch(paths, labels, n_partition):
             print("")
             j += super_batch
         acc_callback.on_epoch_end(i)
+    acc_callback.on_train_end()
     return model
 
 fp = open(path + 'labels_cod.txt', 'r')

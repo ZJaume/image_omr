@@ -9,6 +9,7 @@ from keras import backend as K
 import keras.callbacks
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 # the actual loss calc occurs here despite it not being
 # an internal Keras loss function
@@ -110,12 +111,14 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False):
+    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False, name='plot_acc'):
         self.test_func = test_func
         self.inputs = inputs
         self.blank = blank_label
         self.log_level = logs
         self.batch_size = batch_size
+        self.history = { 'mean_ed': [], 'mean_norm_ed': [] }
+        self.name = name
 
     def on_epoch_end(self, epoch, logs={}):
         if self.log_level == True:
@@ -162,7 +165,19 @@ class AccCallback(keras.callbacks.Callback):
 
         mean_ed = mean_ed / len(func_out)
         mean_norm_ed = mean_norm_ed / len(func_out)
+        history['mean_ed'].append(mean_ed)
+        history['mean_norm_ed'].append(mean_norm_ed)
         print("--Mean edit distance: %0.3f, mean normalized edit distance: %0.3f\n" % (mean_ed, mean_norm_ed))
+
+    def on_train_end(self,logs=None):
+        plt.clf()
+        plt.plot(history['mean_ed'])
+        plt.plot(history['mean_norm_ed'])
+        plt.title('Model edit distance')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(['mean_ed','mean_norm_ed'], loc='upper_left')
+        plt.savefig(self.name + '.png')
 
     def levenshtein(self,raw_a,raw_b):
         # Remove -1 from the lists
