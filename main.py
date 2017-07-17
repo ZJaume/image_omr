@@ -7,6 +7,7 @@ import os
 import json
 
 from keras.models import Model, save_model, load_model
+from acc_callback import AccCallback
 import keras.backend as K
 
 nb_epoch = 20
@@ -94,7 +95,7 @@ def train_super_epoch(paths, labels, n_partition):
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
     model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
-    acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc_drop_05_05')
+    acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc_drop_05_05')
 
     for i in range(nb_epoch):
         print("Super epoch {}/{}".format(i+1,nb_epoch))
@@ -145,7 +146,7 @@ print(str(nb_epoch) + " epochs")
 
 # nb_classes+1 for the ctc blank class
 model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
-acc_callback = models.AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
+acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True)
 
 model.fit(X_train, Y_train['ctc'], batch_size=batch_size, nb_epoch=nb_epoch,
         callbacks=[acc_callback], validation_data=(X_test,Y_test['ctc']))
