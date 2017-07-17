@@ -19,6 +19,17 @@ def ctc_lambda_func(args):
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
 #
+# Create a convolution block and add to a tensor
+# recives a tuple with the configuration (nb_convs, nb_filters, filter_size, pool_size)
+#
+def conv_block(input, config, name='1'):
+    for i in range(config[0]):
+        input = Convolution2D(config[1], config[2], config[2], border_mode='same',
+            activation='relu', name='conv'+ name + '_' + str(i+1))(input)
+    input = MaxPooling2D(pool_size=config[3], name='max'+name)(input)
+    return input
+
+#
 # Create RNN with convolutional filters and CTC logloss function
 #
 def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
@@ -49,28 +60,16 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     input_data = Input(name='the_input', shape=input_shape, dtype='float32')
     # Convolution block 1
-    inner = Convolution2D(nb_filters1, filter_size1, filter_size1, border_mode='same',
-                          activation=act, name='conv1')(input_data)
-    inner = MaxPooling2D(pool_size=pool1, name='max1')(inner)
+    inner = conv_block(input_data, (1, nb_filters1, filter_size1, pool1), name='1')
 
     # Convolution block 4
-    inner = Convolution2D(nb_filters2, filter_size2, filter_size2, border_mode='same',
-                          activation=act, name='conv2')(inner)
-    inner = MaxPooling2D(pool_size=pool1, name='max2')(inner)
+    inner = conv_block(inner, (1, nb_filters2, filter_size2, pool1), name='2')
 
     # Convolution block 3
-    inner = Convolution2D(nb_filters3, filter_size3, filter_size3, border_mode='same',
-                          activation=act, name='conv3_1')(inner)
-    inner = Convolution2D(nb_filters3, filter_size3, filter_size3, border_mode='same',
-                          activation=act, name='conv3_2')(inner)
-    inner = MaxPooling2D(pool_size=pool2, name='max3')(inner)
+    inner = conv_block(inner, (2, nb_filters3, filter_size3, pool2), name='3')
 
     # Convolution block 4
-    inner = Convolution2D(nb_filters4, filter_size4, filter_size4, border_mode='same',
-                          activation=act, name='conv4_1')(inner)
-    inner = Convolution2D(nb_filters4, filter_size4, filter_size4, border_mode='same',
-                          activation=act, name='conv4_2')(inner)
-    inner = MaxPooling2D(pool_size=pool2, name='max4')(inner)
+    inner = conv_block(inner, (2, nb_filters4, filter_size3, pool2), name='4')
 
     conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 4)) * nb_filters4)
     inner = Permute((3,1,2))(inner)
