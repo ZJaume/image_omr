@@ -37,7 +37,7 @@ def create_dictionary():
 #
 # Translate the labels to a coded format using the dictionary
 #
-def codify(max_length, dict_length):
+def encode(max_length, dict_length):
     words = None
     print("Codifying labels...")
     with open(dict_path,'r') as fp:
