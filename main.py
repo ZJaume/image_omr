@@ -97,8 +97,9 @@ def train_super_epoch(paths, labels, n_partition):
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
     model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
-    acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc_drop_05_05')
+    acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc')
 
+    #K.set_learning_phase(0) # Trainning
     for i in range(nb_epoch):
         print("Super epoch {}/{}".format(i+1,nb_epoch))
         j = 0
@@ -113,6 +114,7 @@ def train_super_epoch(paths, labels, n_partition):
             print("")
             j += super_batch
         acc_callback.on_epoch_end(i)
+    #K.set_learning_phase(1) # Testing
     acc_callback.on_train_end()
     return model
 
