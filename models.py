@@ -54,9 +54,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     pool1 = (pool_size, pool_size)
     pool2 = (pool_size, 1)
 
-    time_dense_size = 32
     rnn_size = 256
-    act = 'relu'
 
     input_data = Input(name='the_input', shape=input_shape, dtype='float32')
     # Convolution block 1
