@@ -69,7 +69,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     inner = conv_block(inner, (2, nb_filters3, filter_size3, pool2), name='3')
 
     # Convolution block 4
-    inner = conv_block(inner, (2, nb_filters4, filter_size3, pool2), name='4')
+    inner = conv_block(inner, (2, nb_filters4, filter_size4, pool2), name='4')
 
     conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 4)) * nb_filters4)
     inner = Permute((3,1,2))(inner)
