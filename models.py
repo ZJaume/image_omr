@@ -27,9 +27,16 @@ def conv_block(input, config, name='1'):
     for i in range(config[0]):
         input = Convolution2D(config[1], config[2], config[2], border_mode='same',
             activation='relu', name='conv'+ name + '_' + str(i+1))(input)
-        if config[4]:
-            input = BatchNormalization() (input)
     input = MaxPooling2D(pool_size=config[3], name='max'+name)(input)
+    return input
+
+#
+# Creates a block of bidirectional RNN with GRU
+# config is (num_layers, num_units)
+#
+def rnn_block(input, config):
+    for i in range(config[0]):
+        input = Bidirectional(GRU(config[1], return_sequences=True, name='gru'+str(i)))(input)
     return input
 
 #
@@ -61,16 +68,16 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     input_data = Input(name='the_input', shape=input_shape, dtype='float32')
     # Convolution block 1
-    inner = conv_block(input_data, (1, nb_filters1, filter_size1, pool1, False), name='1')
+    inner = conv_block(input_data, (1, nb_filters1, filter_size1, pool1), name='1')
 
     # Convolution block 4
-    inner = conv_block(inner, (1, nb_filters2, filter_size2, pool1, False), name='2')
+    inner = conv_block(inner, (1, nb_filters2, filter_size2, pool1), name='2')
 
     # Convolution block 3
-    inner = conv_block(inner, (2, nb_filters3, filter_size3, pool2, False), name='3')
+    inner = conv_block(inner, (2, nb_filters3, filter_size3, pool2), name='3')
 
     # Convolution block 4
-    inner = conv_block(inner, (2, nb_filters4, filter_size4, pool2, True), name='4')
+    inner = conv_block(inner, (2, nb_filters4, filter_size4, pool2), name='4')
 
     conv_to_rnn_dims = (img_w // (pool_size ** 2), (img_h // (pool_size ** 4)) * nb_filters4)
     inner = Permute((3,1,2))(inner)
@@ -81,12 +88,11 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    gru_1 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru1'))(inner)
-    gru_2 = Bidirectional(GRU(rnn_size, return_sequences=True, name='gru2'))(gru_1)
+    gru = rnn_block(inner, (2,rnn_size))
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',
-                  name='dense2')(gru_2)
+                  name='dense2')(gru)
     y_pred = Activation('softmax', name='softmax')(inner)
     Model(input=[input_data], output=y_pred).summary()
 
