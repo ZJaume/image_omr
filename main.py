@@ -140,7 +140,12 @@ print("%d training examples" % n_partition)
 print("%d test examples" % (num_paths-n_partition))
 print("%d epochs" % nb_epoch)
 
-configs = [(2,256),(3,256),(2,128),(3,128)]
+configs = []
+for layers in [1,2,3]:
+    for units in [128,256,512]:
+        configs.append((layers,units))
+print("%d configurations to test" % len(configs))
+
 for i in range(len(configs)):
     directory = 'net'+str(i)
     if not os.path.exists(directory):
