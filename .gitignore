@@ -94,3 +94,4 @@ ENV/
 # Other
 data/HOMUS_4Fold/*
 data/synth/*
+net*/

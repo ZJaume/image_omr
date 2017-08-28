@@ -7,12 +7,13 @@ import os
 import json
 
 from keras.models import Model, save_model, load_model
+from keras.utils import plot_model
 from acc_callback import AccCallback
 import keras.backend as K
 
 np.random.seed(1337) # For reproducibility
 
-nb_epoch = 20
+nb_epoch = 1
 batch_size = 128
 super_batch = 10000
 
@@ -92,12 +93,12 @@ def shuffle(a, b):
 #
 # Perform trainning dividing each epoch in batches
 #
-def train_super_epoch(paths, labels, n_partition):
+def train_super_epoch(paths, labels, n_partition, config, directory):
     # Load test examples
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
-    model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1)
-    acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name='plot_acc')
+    model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1, config)
+    acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name=directory)
 
     #K.set_learning_phase(0) # Trainning
     for i in range(nb_epoch):
@@ -139,7 +140,18 @@ print("%d training examples" % n_partition)
 print("%d test examples" % (num_paths-n_partition))
 print("%d epochs" % nb_epoch)
 
-train_super_epoch(paths, labels, n_partition)
+configs = [(2,256),(3,256),(2,128),(3,128)]
+for i in range(len(configs)):
+    directory = 'net'+str(i)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    model = train_super_epoch(paths, labels, n_partition, configs[i], directory)
+    with open(directory + '/model.txt','w+') as f:
+        saveout = sys.stdout
+        sys.stdout = f
+        model.summary()
+        sys.stdout = saveout
+    model.save(directory + '/model.h5')
 '''
 X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
 X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])

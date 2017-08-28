@@ -42,7 +42,7 @@ def rnn_block(input, config):
 #
 # Create RNN with convolutional filters and CTC logloss function
 #
-def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
+def create_rnn(input_shape, lb_max_length, nb_classes, config, pool_size=2):
     if K.image_dim_ordering() =='th':
         img_h = input_shape[1]
         img_w = input_shape[2]
@@ -64,7 +64,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
     pool1 = (pool_size, pool_size)
     pool2 = (pool_size, 1)
 
-    rnn_size = 256
+    rnn_size = config[1]
 
     input_data = Input(name='the_input', shape=input_shape, dtype='float32')
     # Convolution block 1
@@ -88,7 +88,7 @@ def create_rnn(input_shape, lb_max_length, nb_classes, pool_size=2):
 
     # Two layers of bidirecitonal GRUs
     # GRU seems to work as well, if not better than LSTM:
-    gru = rnn_block(inner, (2,rnn_size))
+    gru = rnn_block(inner, (config[0],rnn_size))
 
     # transforms RNN output to character activations:
     inner = Dense(nb_classes, init='he_normal',

@@ -4,10 +4,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 class AccCallback(keras.callbacks.Callback):
 
-    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False, name='plot_acc'):
+    def __init__(self,test_func, inputs, blank_label, batch_size, logs=False, name='net1'):
         self.test_func = test_func
         self.inputs = inputs
         self.blank = blank_label
@@ -17,8 +18,12 @@ class AccCallback(keras.callbacks.Callback):
         self.name = name
 
     def on_epoch_end(self, epoch, logs={}):
+        directory = self.name + '/logs/'
+        log_file = None
         if self.log_level == True:
-            log_file = file('logs/epoch_'+str(epoch)+'.log','w')
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            log_file = file(directory+'epoch_'+str(epoch)+'.log','w+')
 
         count = 0
         while count <= self.inputs['the_input'].shape[0]:
@@ -63,7 +68,10 @@ class AccCallback(keras.callbacks.Callback):
         mean_norm_ed = mean_norm_ed / len(func_out)
         self.history['mean_ed'].append(mean_ed)
         self.history['mean_norm_ed'].append(mean_norm_ed)
-        print("--Mean edit distance: %0.3f, mean normalized edit distance: %0.3f\n" % (mean_ed, mean_norm_ed))
+        message = "---- MED: %0.3f, MED_norm: %0.3f ----\n" % (mean_ed, mean_norm_ed)
+        print(message)
+        if self.log_level == True:
+            log_file.write(message)
 
     def on_train_end(self,logs=None):
         plt.clf()
@@ -73,7 +81,7 @@ class AccCallback(keras.callbacks.Callback):
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
         plt.legend(['mean_ed','mean_norm_ed'], loc='upper left')
-        plt.savefig(self.name + '.png')
+        plt.savefig(self.name + '/acc_plot.png')
 
     def levenshtein(self,raw_a,raw_b):
         # Remove -1 from the lists
