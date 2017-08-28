@@ -13,7 +13,7 @@ import keras.backend as K
 
 np.random.seed(1337) # For reproducibility
 
-nb_epoch = 1
+nb_epoch = 30
 batch_size = 128
 super_batch = 10000
 
