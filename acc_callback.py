@@ -80,6 +80,7 @@ class AccCallback(keras.callbacks.Callback):
         plt.title('Model edit distance')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
+        plt.yscale('log')
         plt.legend(['mean_ed','mean_norm_ed'], loc='upper left')
         plt.savefig(self.name + '/acc_plot.png')
 

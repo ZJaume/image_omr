@@ -141,22 +141,23 @@ print("%d test examples" % (num_paths-n_partition))
 print("%d epochs" % nb_epoch)
 
 configs = []
-for layers in [1,2,3]:
+for layers in [2,3]:
     for units in [128,256,512]:
         configs.append((layers,units))
 print("%d configurations to test" % len(configs))
 
+fb = None
+saveout = sys.stdout
 for i in range(len(configs)):
     directory = 'net'+str(i)
     if not os.path.exists(directory):
         os.makedirs(directory)
+    fb = open(directory + '/model.txt','w+')
+    sys.stdout = fb
     model = train_super_epoch(paths, labels, n_partition, configs[i], directory)
-    with open(directory + '/model.txt','w+') as f:
-        saveout = sys.stdout
-        sys.stdout = f
-        model.summary()
-        sys.stdout = saveout
     model.save(directory + '/model.h5')
+    fb.close()
+sys.stdout = saveout
 '''
 X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
 X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
