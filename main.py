@@ -97,6 +97,7 @@ def train_super_epoch(paths, labels, n_partition, config, directory):
     # Load test examples
     X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
 
+    print(">>>>>>>> " + directory)
     model, test_func = models.create_rnn(input_shape, lb_max_length, nb_classes+1, config)
     acc_callback = AccCallback(test_func, X_test, nb_classes, batch_size, logs=True, name=directory)
 
@@ -142,22 +143,16 @@ print("%d epochs" % nb_epoch)
 
 configs = []
 for layers in [2,3]:
-    for units in [128,256,512]:
+    for units in [256,512]:
         configs.append((layers,units))
 print("%d configurations to test" % len(configs))
 
-fb = None
-saveout = sys.stdout
 for i in range(len(configs)):
     directory = 'net'+str(i)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    fb = open(directory + '/model.txt','w+')
-    sys.stdout = fb
     model = train_super_epoch(paths, labels, n_partition, configs[i], directory)
     model.save(directory + '/model.h5')
-    fb.close()
-sys.stdout = saveout
 '''
 X_train, Y_train, input_shape = load_data(pool_size, paths[:n_partition], labels[:n_partition])
 X_test, Y_test, input_shape = load_data(pool_size, paths[n_partition:], labels[n_partition:])
