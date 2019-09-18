@@ -7,7 +7,7 @@ Pillow==4.0.0
 pyparsing==2.1.10
 python-dateutil==2.6.0
 pytz==2016.10
-PyYAML==3.12
+PyYAML==4.2b1
 scipy==0.18.1
 six==1.10.0
 Theano==0.8.2
